@@ -79,7 +79,7 @@ export default function SearchPageClient() {
           const label = be ? `${be.id} - ${be.name}` : `${r.backendId}`;
           return (
             <li key={r.id} className="flex items-center space-x-2">
-              <span>{r.isDirectory ? '📁' : '📄'}</span>
+              <span>{r.isDirectory ? '[DIR]' : '[FILE]'}</span>
               <span className="italic text-gray-500">[{label}]</span>
               <Link
                 href={`/viewer?backendId=${r.backendId}&path=${encodeURIComponent(r.path)}`}

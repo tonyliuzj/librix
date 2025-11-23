@@ -4,13 +4,13 @@ Librix is a Next.js–powered media explorer web application that lets you index
 
 ## Features
 
-- 🔍 **Full-text search** by filename across all backends  
-- 📂 **Explorer UI**: navigate folder hierarchies, “Up” button, custom paths  
-- 📺 **Inline viewer** for PDFs, images, video (uses HTTP Range requests)  
-- 🔄 **Auto-rescan**, manual rescan, or disable scanning per backend  
-- ⚙️ **Admin panel**: add/edit/delete backends, name them, configure auth & intervals  
-- 🔐 **NextAuth** credentials provider: only admins can manage backends  
-- 🛡️ Guests can browse & view files without seeing backend URLs  
+- **Full-text search** by filename across all backends
+- **Explorer UI**: navigate folder hierarchies, "Up" button, custom paths
+- **Inline viewer** for PDFs, images, video (uses HTTP Range requests)
+- **Auto-rescan**, manual rescan, or disable scanning per backend
+- **Admin panel**: add/edit/delete backends, name them, configure auth & intervals
+- **NextAuth** credentials provider: only admins can manage backends
+- Guests can browse & view files without seeing backend URLs  
 
 ## Prerequisites
 
@@ -24,12 +24,12 @@ Librix is a Next.js–powered media explorer web application that lets you index
 ### Run by script (One Click Install)
 
 ```bash
-curl -sSL https://github.com/isawebapp/Librix/releases/latest/download/librix.sh -o librix.sh && chmod +x librix.sh && bash librix.sh
+curl -sSL https://github.com/tonyliuzj/Librix/releases/latest/download/librix.sh -o librix.sh && chmod +x librix.sh && bash librix.sh
 ```
 
-1. **Clone the repo**  
+1. **Clone the repo**
 ```bash
-   git clone https://github.com/isawebapp/librix.git
+   git clone https://github.com/tonyliuzj/librix.git
    cd librix
 ````
 

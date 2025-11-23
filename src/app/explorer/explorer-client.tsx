@@ -144,7 +144,7 @@ export default function ExplorerClient() {
             <ul className="space-y-2">
               {entries.map(e => (
                 <li key={e.id} className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
-                  <span>{e.isDirectory ? '📁' : '📄'}</span>
+                  <span>{e.isDirectory ? '[DIR]' : '[FILE]'}</span>
                   {e.isDirectory ? (
                     <button
                       onClick={() => {
