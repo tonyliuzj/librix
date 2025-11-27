@@ -1,6 +1,11 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { Play, Pause, Music, Download, SkipBack, SkipForward } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface AudioViewerProps {
   fileUrl: string;
@@ -28,7 +33,7 @@ export default function AudioViewerClient({ fileUrl, fileName }: AudioViewerProp
   };
 
   const handleTimeUpdate = () => {
-    if (audioRef.current) {
+    if (audioRef.current && duration > 0) {
       setProgress((audioRef.current.currentTime / duration) * 100);
     }
   };
@@ -39,82 +44,101 @@ export default function AudioViewerClient({ fileUrl, fileName }: AudioViewerProp
     }
   };
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSeek = (value: number[]) => {
     if (audioRef.current) {
-      const seekTime = (parseFloat(e.target.value) / 100) * duration;
+      const seekTime = (value[0] / 100) * duration;
       audioRef.current.currentTime = seekTime;
-      setProgress(parseFloat(e.target.value));
+      setProgress(value[0]);
     }
   };
 
   const formatTime = (seconds: number) => {
+    if (!seconds || isNaN(seconds)) return '0:00';
     const minutes = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
   return (
-    <div className="flex flex-col h-full p-4">
+    <div className="flex flex-col h-full items-center justify-center bg-muted/40 p-8">
       {error && (
-        <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+        <div className="mb-8 p-3 bg-destructive/10 text-destructive rounded-lg shadow-sm">
           {error}
         </div>
       )}
       
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <div className="w-full max-w-md">
-          <audio
+      <Card className="w-full max-w-md shadow-xl border-none">
+        <CardContent className="p-8 flex flex-col items-center">
+            {/* Disc/Album Art Placeholder */}
+            <div className="flex justify-center mb-8">
+                <div className={cn(
+                    "w-40 h-40 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center shadow-lg transition-all duration-700",
+                    isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''
+                )}>
+                    <Music className="w-20 h-20 text-primary-foreground" />
+                </div>
+            </div>
+
+            <h2 className="text-xl font-bold text-center mb-2 truncate w-full" title={fileName}>
+                {fileName}
+            </h2>
+            <p className="text-center text-muted-foreground text-sm mb-8">Audio File</p>
+
+            <audio
             ref={audioRef}
             src={fileUrl}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onEnded={() => setIsPlaying(false)}
             onError={() => setError('Failed to load audio file')}
-          />
-          
-          <div className="flex items-center justify-center mb-4">
-            <button
-              onClick={togglePlay}
-              className="w-16 h-16 rounded-full bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 focus:outline-none"
-            >
-              {isPlaying ? (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-                  <path fillRule="evenodd" d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0A.75.75 0 0115 4.5h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75V5.25z" clipRule="evenodd" />
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
-                  <path fillRule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
-                </svg>
-              )}
-            </button>
-          </div>
-          
-          <div className="w-full">
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={progress}
-              onChange={handleSeek}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
             />
-            <div className="flex justify-between text-sm text-gray-500 mt-1">
-              <span>{formatTime((progress / 100) * duration)}</span>
-              <span>{formatTime(duration)}</span>
+            
+            {/* Progress Bar */}
+            <div className="w-full mb-6 space-y-2">
+                <Slider
+                    value={[progress]}
+                    max={100}
+                    step={0.1}
+                    onValueChange={handleSeek}
+                    className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground font-mono">
+                    <span>{formatTime((progress / 100) * duration)}</span>
+                    <span>{formatTime(duration)}</span>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="pt-4 flex justify-end">
-        <a
-          href={fileUrl}
-          download={fileName}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Download
-        </a>
-      </div>
+
+            {/* Controls */}
+            <div className="flex items-center justify-center gap-6">
+                <Button variant="ghost" size="icon" className="h-12 w-12 text-muted-foreground">
+                    <SkipBack className="h-6 w-6" />
+                </Button>
+                <Button
+                    onClick={togglePlay}
+                    size="icon"
+                    className="h-16 w-16 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+                >
+                    {isPlaying ? (
+                        <Pause className="h-8 w-8 fill-current" />
+                    ) : (
+                        <Play className="h-8 w-8 fill-current ml-1" />
+                    )}
+                </Button>
+                <Button variant="ghost" size="icon" className="h-12 w-12 text-muted-foreground">
+                    <SkipForward className="h-6 w-6" />
+                </Button>
+            </div>
+            
+            <div className="mt-8 flex justify-center">
+                <Button variant="link" asChild size="sm">
+                    <a href={fileUrl} download={fileName}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Download File
+                    </a>
+                </Button>
+            </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 // src/lib/auth.ts
 import CredentialsProvider from 'next-auth/providers/credentials';
 import type { NextAuthOptions } from 'next-auth';
+import db from '@/utils/db';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -11,13 +12,17 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (
-          credentials?.username === process.env.ADMIN_USER &&
-          credentials?.password === process.env.ADMIN_PASS
-        ) {
+        if (!credentials?.username || !credentials?.password) {
+          return null;
+        }
+
+        const user = db.prepare('SELECT * FROM users WHERE username = ? AND password = ?')
+          .get(credentials.username, credentials.password) as { id: number; username: string } | undefined;
+
+        if (user) {
           return {
-            id: '1',
-            name: 'Admin',
+            id: user.id.toString(),
+            name: user.username,
             email: null,
             image: null,
             role: 'admin',

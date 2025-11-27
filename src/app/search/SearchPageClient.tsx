@@ -3,6 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { Search, File, Folder, Film, Image as ImageIcon, Loader2 } from 'lucide-react';
+
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 type SearchResult = {
   id: number;
@@ -25,13 +31,14 @@ export default function SearchPageClient() {
 
   useEffect(() => {
     async function fetchData() {
-      setLoading(true);
       try {
         const backendsRes = await fetch('/api/backends', { cache: 'no-store' });
         if (backendsRes.ok) {
           setBackends(await backendsRes.json());
         }
+        
         if (q) {
+          setLoading(true);
           const resultsRes = await fetch(`/api/files/search?q=${encodeURIComponent(q)}`, { cache: 'no-store' });
           if (resultsRes.ok) {
             setResults(await resultsRes.json());
@@ -50,47 +57,106 @@ export default function SearchPageClient() {
     fetchData();
   }, [q]);
 
+  const getFileIcon = (path: string, isDirectory: boolean) => {
+    if (isDirectory) {
+      return <Folder className="h-6 w-6 text-yellow-500" />;
+    }
+    const ext = path.split('.').pop()?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) {
+      return <ImageIcon className="h-6 w-6 text-purple-500" />;
+    }
+    if (['mp4', 'webm', 'mov'].includes(ext || '')) {
+      return <Film className="h-6 w-6 text-red-500" />;
+    }
+    return <File className="h-6 w-6 text-muted-foreground" />;
+  };
+
   return (
-    <div className="mt-14 p-4">
-      <h1 className="text-2xl font-semibold mb-6">Search Files</h1>
-      <form method="get" className="mb-6 flex">
-        <input
-          name="q"
-          defaultValue={q}
-          placeholder="filename..."
-          className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-l"
-        />
-        <button
-          type="submit"
-          className="px-4 bg-primary-500 text-white rounded-r hover:bg-primary-600"
-        >
-          Search
-        </button>
-      </form>
-      {loading && <p>Loading...</p>}
-      {!loading && q && results.length === 0 && (
-        <p className="text-gray-700 dark:text-gray-300">
-          {`No files found for "${q}".`}
+    <div className="container mx-auto max-w-3xl py-12">
+      <div className="text-center mb-12 space-y-4">
+        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
+          Search Files
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          Find documents, images, and media across all your backends.
         </p>
+      </div>
+
+      <form method="get" className="mb-12 relative flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            name="q"
+            defaultValue={q}
+            placeholder="Search for files..."
+            className="pl-9 h-10"
+          />
+        </div>
+        <Button type="submit" size="default">
+          Search
+        </Button>
+      </form>
+
+      {loading && (
+        <div className="flex justify-center my-12">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
       )}
-      <ul className="space-y-2">
-        {results.map((r) => {
-          const be = backends.find((b) => b.id === r.backendId);
-          const label = be ? `${be.id} - ${be.name}` : `${r.backendId}`;
-          return (
-            <li key={r.id} className="flex items-center space-x-2">
-              <span>{r.isDirectory ? '[DIR]' : '[FILE]'}</span>
-              <span className="italic text-gray-500">[{label}]</span>
-              <Link
-                href={`/viewer?backendId=${r.backendId}&path=${encodeURIComponent(r.path)}`}
-                className="text-primary-500 hover:underline break-all"
-              >
-                {decodeURIComponent(r.path)}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+
+      {!loading && q && results.length === 0 && (
+        <Card className="text-center py-12">
+          <CardContent>
+            <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-20" />
+            <p className="text-lg text-muted-foreground">
+              No files found for {`"${q}"`}.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {results.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold tracking-tight pl-1">
+            {results.length} result{results.length === 1 ? '' : 's'} found
+          </h2>
+          <div className="grid gap-4">
+            {results.map((r) => {
+              const be = backends.find((b) => b.id === r.backendId);
+              const backendName = be ? be.name : `Backend #${r.backendId}`;
+              const fileName = r.path.split('/').pop();
+              const dirPath = r.path.substring(0, r.path.lastIndexOf('/'));
+              
+              return (
+                <Link
+                  key={r.id}
+                  href={r.isDirectory ? `/explorer?backendId=${r.backendId}&path=${encodeURIComponent(r.path)}` : `/viewer?backendId=${r.backendId}&path=${encodeURIComponent(r.path)}`}
+                >
+                  <Card className="hover:bg-accent/50 transition-colors">
+                    <CardContent className="p-4 flex items-start space-x-4">
+                      <div className="flex-shrink-0 mt-1">
+                        {getFileIcon(r.path, r.isDirectory)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-base font-semibold truncate">
+                          {decodeURIComponent(fileName || r.path)}
+                        </p>
+                        <p className="text-sm text-muted-foreground truncate mt-0.5">
+                          {decodeURIComponent(dirPath) || '/'}
+                        </p>
+                        <div className="mt-2">
+                          <Badge variant="secondary" className="text-xs">
+                            {backendName}
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import type { SyntaxHighlighterProps } from 'react-syntax-highlighter';
+import { Loader2, Download, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface TextViewerProps {
   fileUrl: string;
@@ -55,23 +57,25 @@ export default function TextViewerClient({ fileUrl, fileName }: TextViewerProps)
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p>Loading...</p>
+      <div className="flex items-center justify-center h-full bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <p className="mb-4 text-red-500">{error}</p>
-        <a
-          href={fileUrl}
-          download={fileName}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Download {fileName}
-        </a>
+      <div className="flex flex-col items-center justify-center h-full bg-background space-y-4">
+        <div className="flex items-center text-destructive">
+             <AlertCircle className="h-6 w-6 mr-2" />
+             <p className="font-medium">{error}</p>
+        </div>
+        <Button asChild>
+            <a href={fileUrl} download={fileName}>
+                <Download className="mr-2 h-4 w-4" />
+                Download {fileName}
+            </a>
+        </Button>
       </div>
     );
   }
@@ -92,31 +96,39 @@ export default function TextViewerClient({ fileUrl, fileName }: TextViewerProps)
   const language = languageMap[extension || ''] || 'plaintext';
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-auto">
-        {themeStyle ? (
-          <SyntaxHighlighter 
-            language={language} 
-            style={themeStyle}
-            showLineNumbers
-            customStyle={{ margin: 0, borderRadius: 0 }}
-          >
-            {content}
-          </SyntaxHighlighter>
-        ) : (
-          <pre className="bg-gray-100 dark:bg-gray-800 p-4 overflow-auto">
-            {content}
-          </pre>
-        )}
+    <div className="flex flex-col h-full bg-background">
+      <div className="flex-1 overflow-hidden relative">
+          <div className="absolute inset-0">
+            {themeStyle ? (
+            <SyntaxHighlighter 
+                language={language} 
+                style={themeStyle}
+                showLineNumbers
+                customStyle={{ 
+                margin: 0, 
+                padding: '1.5rem',
+                height: '100%',
+                fontSize: '0.875rem', 
+                lineHeight: '1.5',
+                backgroundColor: '#1e1e1e' // Force dark background to match atomOneDark
+                }}
+            >
+                {content}
+            </SyntaxHighlighter>
+            ) : (
+            <pre className="p-6 overflow-auto text-sm font-mono bg-muted text-muted-foreground h-full">
+                {content}
+            </pre>
+            )}
+          </div>
       </div>
-      <div className="p-4 bg-gray-100 dark:bg-gray-700 flex justify-end">
-        <a
-          href={fileUrl}
-          download={fileName}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Download
-        </a>
+      <div className="p-4 border-t bg-background flex justify-end">
+        <Button asChild size="sm">
+             <a href={fileUrl} download={fileName}>
+                <Download className="mr-2 h-4 w-4" />
+                Download
+             </a>
+        </Button>
       </div>
     </div>
   );

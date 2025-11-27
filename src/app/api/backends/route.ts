@@ -29,8 +29,8 @@ function getNextId() {
 export async function GET() {
   try {
     const list = db
-      .prepare('SELECT id, name, rescanInterval FROM backends ORDER BY id')
-      .all() as { id: number; name: string; rescanInterval: number | null }[];
+      .prepare('SELECT id, name, url, authEnabled, username, password, rescanInterval FROM backends ORDER BY id')
+      .all();
     return NextResponse.json(list);
   } catch (error) {
     console.error('Error fetching backends:', error);

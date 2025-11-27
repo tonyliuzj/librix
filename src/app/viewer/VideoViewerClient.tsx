@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { Play, Pause, Maximize, Minimize, Volume2, VolumeX, Download } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
 
 interface VideoViewerProps {
   fileUrl: string;
@@ -14,6 +17,8 @@ export default function VideoViewerClient({ fileUrl, fileName }: VideoViewerProp
   const [duration, setDuration] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -47,7 +52,7 @@ export default function VideoViewerClient({ fileUrl, fileName }: VideoViewerProp
   };
 
   const handleTimeUpdate = () => {
-    if (videoRef.current) {
+    if (videoRef.current && duration > 0) {
       setProgress((videoRef.current.currentTime / duration) * 100);
     }
   };
@@ -58,15 +63,39 @@ export default function VideoViewerClient({ fileUrl, fileName }: VideoViewerProp
     }
   };
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSeek = (value: number[]) => {
     if (videoRef.current) {
-      const seekTime = (parseFloat(e.target.value) / 100) * duration;
+      const seekTime = (value[0] / 100) * duration;
       videoRef.current.currentTime = seekTime;
-      setProgress(parseFloat(e.target.value));
+      setProgress(value[0]);
     }
   };
 
+  const handleVolumeChange = (value: number[]) => {
+    if (videoRef.current) {
+        const newVolume = value[0];
+        videoRef.current.volume = newVolume;
+        setVolume(newVolume);
+        setIsMuted(newVolume === 0);
+    }
+  }
+
+  const toggleMute = () => {
+      if (videoRef.current) {
+          const newMuted = !isMuted;
+          videoRef.current.muted = newMuted;
+          setIsMuted(newMuted);
+          if (newMuted) {
+              setVolume(0);
+          } else {
+              setVolume(1);
+              videoRef.current.volume = 1;
+          }
+      }
+  }
+
   const formatTime = (seconds: number) => {
+    if (!seconds || isNaN(seconds)) return '0:00';
     const minutes = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
@@ -85,82 +114,91 @@ export default function VideoViewerClient({ fileUrl, fileName }: VideoViewerProp
   }, []);
 
   return (
-    <div className="flex flex-col h-full p-4">
+    <div className="flex flex-col h-full bg-black text-white relative group">
       {error && (
-        <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 bg-destructive text-destructive-foreground rounded-lg shadow-lg">
           {error}
         </div>
       )}
       
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <div className="w-full max-w-4xl">
-          <video
-            ref={videoRef}
-            src={fileUrl}
-            onTimeUpdate={handleTimeUpdate}
-            onLoadedMetadata={handleLoadedMetadata}
-            onEnded={() => setIsPlaying(false)}
-            onError={() => setError('Failed to load video file')}
-            className="w-full rounded-lg shadow-lg"
-          />
-          
-          <div className="mt-4 flex items-center space-x-4">
-            <button
-              onClick={togglePlay}
-              className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center hover:bg-blue-600 focus:outline-none"
-            >
-              {isPlaying ? (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                  <path fillRule="evenodd" d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0A.75.75 0 0115 4.5h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75V5.25z" clipRule="evenodd" />
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                  <path fillRule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
-                </svg>
-              )}
-            </button>
-            
-            <div className="flex-1">
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={progress}
-                onChange={handleSeek}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <div className="flex justify-between text-sm text-gray-500 mt-1">
-                <span>{formatTime((progress / 100) * duration)}</span>
-                <span>{formatTime(duration)}</span>
-              </div>
+      <div className="flex-1 flex items-center justify-center relative overflow-hidden">
+        <video
+          ref={videoRef}
+          src={fileUrl}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={() => setIsPlaying(false)}
+          onError={() => setError('Failed to load video file')}
+          className="max-w-full max-h-full"
+          onClick={togglePlay}
+        />
+        
+        {/* Play/Pause Overlay on Hover or Pause */}
+        {!isPlaying && !error && (
+          <div 
+            className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer"
+            onClick={togglePlay}
+          >
+            <div className="p-4 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all">
+                <Play className="h-12 w-12 text-white fill-white" />
             </div>
-            
-            <button
-              onClick={toggleFullscreen}
-              className="w-12 h-12 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center hover:bg-gray-300 focus:outline-none"
-            >
-              {isFullscreen ? (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                  <path fillRule="evenodd" d="M3.22 3.22a.75.75 0 011.06 0l3.97 3.97V4.5a.75.75 0 011.5 0V9a.75.75 0 01-.75.75H4.5a.75.75 0 010-1.5h2.69L3.22 4.28a.75.75 0 010-1.06zm17.56 0a.75.75 0 010 1.06l-3.97 3.97h2.69a.75.75 0 010 1.5H15a.75.75 0 01-.75-.75V4.5a.75.75 0 011.5 0v2.69l3.97-3.97a.75.75 0 011.06 0zM3.22 20.78a.75.75 0 010-1.06l3.97-3.97H4.5a.75.75 0 010-1.5H9a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-2.69l-3.97 3.97a.75.75 0 01-1.06 0zm17.56 0a.75.75 0 01-1.06 0l-3.97-3.97v2.69a.75.75 0 01-1.5 0V15a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-2.69l3.97 3.97a.75.75 0 010 1.06z" clipRule="evenodd" />
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                  <path fillRule="evenodd" d="M15.75 2.25H21a.75.75 0 01.75.75v5.25a.75.75 0 01-1.5 0V4.81L8.03 17.03a.75.75 0 01-1.06-1.06L19.19 3.75h-3.44a.75.75 0 010-1.5zm-10.5 4.5a.75.75 0 01.75.75v10.19l2.47-2.47a.75.75 0 111.06 1.06L4.81 20.25h3.44a.75.75 0 010 1.5H3a.75.75 0 01-.75-.75v-5.25a.75.75 0 011.5 0v3.44l9.72-9.72a.75.75 0 111.06 1.06L5.81 16.75H9a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75V9a.75.75 0 01.75-.75z" clipRule="evenodd" />
-                </svg>
-              )}
-            </button>
           </div>
-        </div>
+        )}
       </div>
       
-      <div className="pt-4 flex justify-end">
-        <a
-          href={fileUrl}
-          download={fileName}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Download
-        </a>
+      {/* Controls Bar */}
+      <div className="bg-gradient-to-t from-black/80 to-transparent p-4 absolute bottom-0 left-0 right-0 transition-opacity opacity-0 group-hover:opacity-100 focus-within:opacity-100">
+          <div className="flex flex-col gap-2 max-w-5xl mx-auto">
+             <div className="flex items-center gap-4">
+                <Slider
+                    value={[progress]}
+                    max={100}
+                    step={0.1}
+                    onValueChange={handleSeek}
+                    className="cursor-pointer"
+                />
+             </div>
+             
+             <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" onClick={togglePlay} className="text-white hover:text-white hover:bg-white/20">
+                        {isPlaying ? <Pause className="h-5 w-5 fill-white" /> : <Play className="h-5 w-5 fill-white" />}
+                    </Button>
+                    
+                    <span className="text-xs font-mono">
+                        {formatTime((progress / 100) * duration)} / {formatTime(duration)}
+                    </span>
+
+                    <div className="flex items-center gap-2 group/volume">
+                         <Button variant="ghost" size="icon" onClick={toggleMute} className="text-white hover:text-white hover:bg-white/20">
+                             {isMuted || volume === 0 ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                         </Button>
+                         <div className="w-24 hidden group-hover/volume:block transition-all">
+                            <Slider 
+                                value={[isMuted ? 0 : volume]}
+                                max={1}
+                                step={0.01}
+                                onValueChange={handleVolumeChange}
+                            />
+                         </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <a
+                        href={fileUrl}
+                        download={fileName}
+                        className="p-2 rounded-md hover:bg-white/20 text-white"
+                        title="Download"
+                    >
+                         <Download className="h-5 w-5" />
+                    </a>
+                    <Button variant="ghost" size="icon" onClick={toggleFullscreen} className="text-white hover:text-white hover:bg-white/20">
+                        {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+                    </Button>
+                </div>
+             </div>
+          </div>
       </div>
     </div>
   );

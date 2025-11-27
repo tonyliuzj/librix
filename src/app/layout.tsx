@@ -2,6 +2,10 @@ import './globals.css'
 import NavBar from './nav-bar'
 import { Suspense } from 'react'
 import { ThemeProvider } from 'next-themes'
+import { Inter } from 'next/font/google'
+import { cn } from '@/lib/utils'
+
+const inter = Inter({ subsets: ['latin'], variable: "--font-sans" })
 
 export const metadata = {
   title: 'Media Explorer',
@@ -16,18 +20,19 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className="bg-gray-100 dark:bg-gray-900"
-      style={{ colorScheme: 'light dark' }}
     >
       <head>
         <link rel="preload" href="/pdf.worker.min.js" as="script" />
       </head>
-      <body className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <body className={cn(
+          "min-h-screen bg-background font-sans antialiased",
+          inter.variable
+        )}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Suspense fallback={<div>Loading…</div>}>
+          <Suspense fallback={null}>
             <NavBar />
           </Suspense>
-          <main className="pt-16 md:pt-0 p-4">{children}</main>
+          <main>{children}</main>
         </ThemeProvider>
       </body>
     </html>

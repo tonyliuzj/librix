@@ -33,4 +33,17 @@ db.prepare(`
   );
 `).run();
 
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS users (
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT    NOT NULL UNIQUE,
+    password TEXT    NOT NULL
+  );
+`).run();
+
+const adminExists = db.prepare('SELECT COUNT(*) as count FROM users WHERE username = ?').get('admin') as { count: number };
+if (adminExists.count === 0) {
+  db.prepare('INSERT INTO users (username, password) VALUES (?, ?)').run('admin', 'changeme');
+}
+
 export default db;

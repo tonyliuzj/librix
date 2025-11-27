@@ -55,13 +55,18 @@ export default function PdfViewerClient({ fileUrl }: Props) {
     }, [])
 
     return (
-        <div ref={containerRef} style={{ height: '100vh' }}>
+        <div className="h-full w-full bg-muted/30" ref={containerRef}>
             <Worker workerUrl="/pdf.worker.min.js">
-                <Viewer
-                    fileUrl={fileUrl}
-                    plugins={[defaultLayoutPluginInstance]}
-                    onZoom={handleZoom}
-                />
+                <div className="h-full w-full">
+                    <Viewer
+                        fileUrl={fileUrl}
+                        plugins={[defaultLayoutPluginInstance]}
+                        onZoom={handleZoom}
+                        theme={{
+                            theme: 'auto', 
+                        }}
+                    />
+                </div>
             </Worker>
         </div>
     )
