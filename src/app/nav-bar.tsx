@@ -33,7 +33,7 @@ export default function NavBar() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const isViewer = pathname.startsWith('/viewer');
+  const isViewer = pathname.match(/^\/files\/[^/]+$/) && !pathname.includes('/search') && !pathname.includes('/browse');
   const fileName = isViewer
     ? searchParams.get('path')?.split('/').pop()
     : null;
@@ -74,26 +74,26 @@ export default function NavBar() {
                   </SheetHeader>
                   <div className="flex flex-col gap-4 py-4">
                     <Link
-                      href="/search"
+                      href="/files/search"
                       onClick={() => setMobileMenuOpen(false)}
                       className={cn(
                         "flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary",
-                        isActive('/search') ? "text-primary" : "text-muted-foreground"
+                        isActive('/files/search') ? "text-primary" : "text-muted-foreground"
                       )}
                     >
                       <Search className="h-4 w-4" />
                       Search
                     </Link>
                     <Link
-                      href="/explorer"
+                      href="/files/browse"
                       onClick={() => setMobileMenuOpen(false)}
                       className={cn(
                         "flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary",
-                        isActive('/explorer') ? "text-primary" : "text-muted-foreground"
+                        isActive('/files/browse') ? "text-primary" : "text-muted-foreground"
                       )}
                     >
                       <Folder className="h-4 w-4" />
-                      Explorer
+                      Browse
                     </Link>
                     <Link
                       href="/admin"
@@ -130,16 +130,16 @@ export default function NavBar() {
           <NavigationMenu className="hidden md:flex mx-6">
             <NavigationMenuList>
               <NavigationMenuItem>
-                <NavigationMenuLink asChild className={cn(navigationMenuTriggerStyle(), isActive('/search') && "bg-accent text-accent-foreground")}>
-                  <Link href="/search">
+                <NavigationMenuLink asChild className={cn(navigationMenuTriggerStyle(), isActive('/files/search') && "bg-accent text-accent-foreground")}>
+                  <Link href="/files/search">
                     Search
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <NavigationMenuLink asChild className={cn(navigationMenuTriggerStyle(), isActive('/explorer') && "bg-accent text-accent-foreground")}>
-                  <Link href="/explorer">
-                    Explorer
+                <NavigationMenuLink asChild className={cn(navigationMenuTriggerStyle(), isActive('/files/browse') && "bg-accent text-accent-foreground")}>
+                  <Link href="/files/browse">
+                    Browse
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>

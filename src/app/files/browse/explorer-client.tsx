@@ -59,8 +59,8 @@ export default function ExplorerClient() {
 
   const updateUrl = (newBackend: number | null, newPath: string) => {
     const url = newBackend
-      ? `/explorer?backendId=${newBackend}&path=${encodeURIComponent(newPath)}`
-      : '/explorer';
+      ? `/files/browse?backendId=${newBackend}&path=${encodeURIComponent(newPath)}`
+      : '/files/browse';
     router.push(url);
     setMobileSidebarOpen(false);
   };
@@ -233,7 +233,7 @@ export default function ExplorerClient() {
                                                 const dir = e.path.endsWith('/') ? e.path : e.path + '/';
                                                 updateUrl(backendId, dir);
                                             } else {
-                                                router.push(`/viewer?backendId=${backendId}&path=${encodeURIComponent(e.path)}`);
+                                                router.push(`/files/${e.id}?backendId=${backendId}&path=${encodeURIComponent(e.path)}`);
                                             }
                                         }}
                                     >

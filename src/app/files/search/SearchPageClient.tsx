@@ -129,7 +129,7 @@ export default function SearchPageClient() {
               return (
                 <Link
                   key={r.id}
-                  href={r.isDirectory ? `/explorer?backendId=${r.backendId}&path=${encodeURIComponent(r.path)}` : `/viewer?backendId=${r.backendId}&path=${encodeURIComponent(r.path)}`}
+                  href={r.isDirectory ? `/files/browse?backendId=${r.backendId}&path=${encodeURIComponent(r.path)}` : `/files/${r.id}?backendId=${r.backendId}&path=${encodeURIComponent(r.path)}`}
                 >
                   <Card className="hover:bg-accent/50 transition-colors">
                     <CardContent className="p-4 flex items-start space-x-4">
