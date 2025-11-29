@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { Menu, Moon, Sun, ArrowLeft, Search, Folder, Settings, MonitorPlay } from 'lucide-react';
+import { Menu, Moon, Sun, ArrowLeft, Search, Folder, Settings, Library } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -70,7 +70,7 @@ export default function NavBar() {
                 </SheetTrigger>
                 <SheetContent side="left">
                   <SheetHeader>
-                    <SheetTitle>Media Explorer</SheetTitle>
+                    <SheetTitle>File Library</SheetTitle>
                   </SheetHeader>
                   <div className="flex flex-col gap-4 py-4">
                     <Link
@@ -95,24 +95,13 @@ export default function NavBar() {
                       <Folder className="h-4 w-4" />
                       Browse
                     </Link>
-                    <Link
-                      href="/admin"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={cn(
-                        "flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary",
-                        isActive('/admin') ? "text-primary" : "text-muted-foreground"
-                      )}
-                    >
-                      <Settings className="h-4 w-4" />
-                      Admin
-                    </Link>
                   </div>
                 </SheetContent>
               </Sheet>
               
               <Link href="/" className="flex items-center gap-2 font-bold text-xl mr-6">
-                <MonitorPlay className="h-6 w-6 text-primary" />
-                <span className="hidden sm:inline-block">Media Explorer</span>
+                <Library className="h-6 w-6 text-primary" />
+                <span className="hidden sm:inline-block">File Library</span>
               </Link>
             </div>
           )}
@@ -140,13 +129,6 @@ export default function NavBar() {
                 <NavigationMenuLink asChild className={cn(navigationMenuTriggerStyle(), isActive('/files/browse') && "bg-accent text-accent-foreground")}>
                   <Link href="/files/browse">
                     Browse
-                  </Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink asChild className={cn(navigationMenuTriggerStyle(), isActive('/admin') && "bg-accent text-accent-foreground")}>
-                  <Link href="/admin">
-                    Admin
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>

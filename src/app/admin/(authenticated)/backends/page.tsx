@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export default async function AdminBackendsPage() {
   const session = await getServerSession(authOptions);
   if (!session) {
-    redirect('/api/auth/signin?callbackUrl=/admin/backends');
+    redirect('/admin/signin');
   }
   const user = session.user as { role?: string };
   if (user.role !== 'admin') {

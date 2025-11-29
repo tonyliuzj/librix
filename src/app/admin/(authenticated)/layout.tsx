@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Server, FileText } from 'lucide-react';
+import { Server } from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -17,7 +17,7 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen">
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container max-w-5xl mx-auto px-4">
+        <div className="container max-w-7xl mx-auto px-4">
           <nav className="flex gap-6 py-4">
             <Link
               href="/admin/backends"
@@ -30,18 +30,6 @@ export default function AdminLayout({
             >
               <Server className="h-4 w-4" />
               Backends
-            </Link>
-            <Link
-              href="/admin/files"
-              className={cn(
-                "flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary pb-2 border-b-2",
-                isActive('/admin/files')
-                  ? "text-primary border-primary"
-                  : "text-muted-foreground border-transparent"
-              )}
-            >
-              <FileText className="h-4 w-4" />
-              Files
             </Link>
           </nav>
         </div>
