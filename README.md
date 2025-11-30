@@ -1,23 +1,24 @@
 # Librix
 
-Librix is a Next.js–powered media explorer web application that lets you index and browse files (PDF, MP4, images, etc.) stored on one or more remote HTTP/WebDAV–style servers. You run a small VPS frontend that proxies and catalogs content in SQLite, while storage back-ends live on low-cost shared hosting or any HTTP server.
+Librix is a Next.js–powered media explorer web application that lets you index and browse files (PDF, MP4, images, audio, markdown, text, etc.) stored on one or more remote HTTP/WebDAV–style servers. You run a small VPS frontend that proxies and catalogs content in SQLite, while storage back-ends live on low-cost shared hosting or any HTTP server.
 
 ## Features
 
 - **Full-text search** by filename across all backends
-- **Explorer UI**: navigate folder hierarchies, "Up" button, custom paths
-- **Inline viewer** for PDFs, images, video (uses HTTP Range requests)
-- **Auto-rescan**, manual rescan, or disable scanning per backend
+- **Explorer UI**: navigate folder hierarchies with breadcrumb navigation
+- **Inline viewer** for PDFs, images, video, audio, markdown, and text files (uses HTTP Range requests)
+- **Auto-rescan**: background cron job scans backends at configured intervals
 - **Admin panel**: add/edit/delete backends, name them, configure auth & intervals
 - **NextAuth** credentials provider: only admins can manage backends
-- Guests can browse & view files without seeing backend URLs  
+- Guests can browse & view files without seeing backend URLs
+- **Modern UI**: Built with shadcn/ui components and Tailwind CSS
 
 ## Prerequisites
 
-- **Node.js** ≥16  
-- **npm** or **yarn**  
-- **VPS** or server with public HTTPS (for production)  
-- Shared HTTP/WebDAV storage backends with directory listing enabled  
+- **Node.js** ≥18
+- **npm** or **yarn**
+- **VPS** or server with public HTTPS (for production)
+- Shared HTTP/WebDAV storage backends with directory listing enabled
 
 ## Getting Started
 
@@ -27,27 +28,32 @@ Librix is a Next.js–powered media explorer web application that lets you index
 curl -sSL https://github.com/tonyliuzj/Librix/releases/latest/download/librix.sh -o librix.sh && chmod +x librix.sh && bash librix.sh
 ```
 
+### Manual Installation
+
 1. **Clone the repo**
-```bash
+
+   ```bash
    git clone https://github.com/tonyliuzj/librix.git
    cd librix
-````
+   ```
 
 2. **Install dependencies**
 
    ```bash
    npm install
-   # or
-   yarn install
    ```
 
 3. **Environment variables**
-   Copy `.env.example` to `.env.local` and fill in:
+
+   Copy `example.env.local` to `.env.local` and fill in:
 
    ```
-   ADMIN_USER=your_admin_username
-   ADMIN_PASS=your_admin_password
-   NEXTAUTH_SECRET=some_random_long_string
+   NEXTAUTH_SECRET=your-secret-key-here-generate-with-openssl-rand-base64-32
+   ```
+
+   Generate a secure secret:
+   ```bash
+   openssl rand -base64 32
    ```
 
 4. **Run in development**
@@ -72,29 +78,39 @@ librix/
 ├── data.db                  # SQLite database (auto-created)
 ├── next.config.js
 ├── package.json
-├── scripts/
-│   └── scanner.ts           # background cron scanner
 ├── src/
+│   ├── instrumentation.ts   # background cron scanner (runs on server start)
 │   ├── utils/
 │   │   ├── db.ts            # SQLite schema and connection
 │   │   └── scanner.ts       # indexer logic
+│   ├── lib/
+│   │   ├── auth.ts          # NextAuth configuration
+│   │   └── utils.ts         # utility functions
+│   ├── components/
+│   │   └── ui/              # shadcn/ui components
 │   └── app/
 │       ├── api/
 │       │   ├── auth/[...nextauth]/route.ts
-│       │   ├── backends/route.ts
+│       │   ├── backends/
+│       │   │   ├── route.ts
+│       │   │   └── scan/route.ts
 │       │   └── files/
 │       │       ├── explorer/route.ts
 │       │       ├── search/route.ts
 │       │       └── view/route.ts
 │       ├── admin/
-│       │   ├── page.tsx
-│       │   └── admin-client.tsx
-│       ├── explorer/page.tsx
-│       ├── search/page.tsx
-│       ├── viewer/page.tsx
+│       │   ├── (authenticated)/
+│       │   │   ├── backends/page.tsx
+│       │   │   └── layout.tsx
+│       │   ├── signin/page.tsx
+│       │   └── page.tsx
+│       ├── files/
+│       │   ├── [fileId]/page.tsx    # file viewer with dynamic routing
+│       │   ├── browse/page.tsx      # file explorer
+│       │   └── search/page.tsx      # search interface
 │       ├── nav-bar.tsx
 │       ├── layout.tsx
-│       └── globals.css
+│       └── page.tsx
 └── tsconfig.json
 ```
 
@@ -105,28 +121,32 @@ librix/
 * **Name**: human-readable label (defaults to URL if blank)
 * **URL**: root of remote directory listing
 * **Auth**: optional Basic auth (username & password)
-* **Auto-rescan interval**: “Never” or X minutes
+* **Auto-rescan interval**: "Never" or X minutes
 
 ### Environment Variables
 
 | Variable          | Description                             |
 | ----------------- | --------------------------------------- |
-| `ADMIN_USER`      | Admin username for NextAuth credentials |
-| `ADMIN_PASS`      | Admin password for NextAuth credentials |
-| `NEXTAUTH_SECRET` | Random secret for NextAuth JWT/session  |
+| `NEXTAUTH_SECRET` | Random secret for NextAuth JWT/session (min 32 characters) |
+
+### Initial Setup
+
+On first run, you'll need to create an admin user in the SQLite database. The application uses credentials-based authentication stored in the `users` table.
 
 ## Usage
 
 * **Guest users**
 
-  * Search: `/search?q=filename`
-  * Explore: `/explorer?backendId=<ID>&path=/<folder>/`
-  * View: `/viewer?backendId=<ID>&path=/file.pdf`
+  * Home: `/` - Landing page with navigation
+  * Search: `/files/search?q=filename` - Search for files across all backends
+  * Browse: `/files/browse?backendId=<ID>&path=/<folder>/` - Navigate folder hierarchies
+  * View: `/files/<fileId>` - View individual files (PDF, images, video, audio, markdown, text)
 
-* **Admin users** (after logging in at `/api/auth/signin`)
+* **Admin users** (after logging in at `/admin/signin`)
 
-  * Admin panel: `/admin`
-  * Manage storage backends: add, edit, delete, rescan
+  * Admin panel: `/admin/backends` - Manage storage backends
+  * Add, edit, delete backends
+  * Trigger manual rescans
 
 ## API Endpoints
 
@@ -134,12 +154,14 @@ librix/
   Returns `[{ id, name, rescanInterval }]` to everyone.
 * **`POST/PUT/DELETE /api/backends`**
   Admin-only: create, update, delete backends.
+* **`POST /api/backends/scan`**
+  Admin-only: trigger manual rescan of a specific backend.
 * **`GET /api/files/search?q=`**
-  Public: search for files by name.
+  Public: search for files by name across all backends.
 * **`GET /api/files/explorer?backendId=&path=`**
-  Public: list directory entries.
+  Public: list directory entries for a specific backend and path.
 * **`GET /api/files/view?backendId=&path=`**
-  Public: proxy and stream files (supports HTTP Range).
+  Public: proxy and stream files (supports HTTP Range requests for video/audio).
 
 ## Security
 

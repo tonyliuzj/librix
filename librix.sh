@@ -85,27 +85,22 @@ install_librix() {
 
   # 6. Env vars
   echo "Configuring environment variables..."
-  read -p "Domain Hosted: " URL
-  read -p "Admin username: " ADMIN_USER
-  read -s -p "Admin password: " ADMIN_PASS
+  read -s -p "NextAuth secret (min 32 characters, or press Enter to generate): " NEXTAUTH_SECRET
   echo ""
-  read -s -p "Session password (min 32 characters): " SESSION_PASS
-  echo ""
-  while [ ${#SESSION_PASS} -lt 32 ]; do
-    echo "Session password must be at least 32 characters"
-    read -s -p "Please enter a session password (min 32 characters): " SESSION_PASS
+
+  if [ -z "$NEXTAUTH_SECRET" ]; then
+    echo "Generating random secret..."
+    NEXTAUTH_SECRET=$(openssl rand -base64 32)
+  fi
+
+  while [ ${#NEXTAUTH_SECRET} -lt 32 ]; do
+    echo "NextAuth secret must be at least 32 characters"
+    read -s -p "Please enter a NextAuth secret (min 32 characters): " NEXTAUTH_SECRET
     echo ""
   done
-  read -p "Port to serve the app on (default 3000): " APP_PORT
-  APP_PORT=${APP_PORT:-3000}
 
   cat > .env.local <<EOF
-ADMIN_USER=$ADMIN_USER
-ADMIN_PASS=$ADMIN_PASS
-NEXTAUTH_URL=$URL
-NEXTAUTH_SECRET=$SESSION_PASS
-
-PORT=$APP_PORT
+NEXTAUTH_SECRET=$NEXTAUTH_SECRET
 EOF
 
   echo ".env.local created"
