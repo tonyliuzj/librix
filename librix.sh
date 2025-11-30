@@ -23,12 +23,10 @@ show_menu() {
 install_librix() {
   echo "Starting Librix Installation..."
 
-  # 1. System dependencies
   echo "Installing system dependencies..."
   sudo apt update
   sudo apt install -y git curl sqlite3 build-essential
 
-  # 2. Node.js: Must be at least v18, but install 22 if not installed at all
   echo "Checking Node.js version..."
   if command -v node >/dev/null 2>&1; then
     VERSION=$(node -v | sed 's/^v//')
@@ -53,7 +51,6 @@ install_librix() {
     sudo apt install -y nodejs
   fi
 
-  # 3. PM2
   echo "Checking for PM2..."
   if command -v pm2 >/dev/null 2>&1; then
     echo "PM2 is already installed. Skipping installation."
@@ -62,7 +59,6 @@ install_librix() {
     npm install -g pm2
   fi
 
-  # 4. Clone repo
   if [ -d "$INSTALL_DIR" ]; then
     if [ -d "$INSTALL_DIR/.git" ]; then
       echo "Repository already exists. Pulling latest changes..."
@@ -79,11 +75,9 @@ install_librix() {
     cd "$INSTALL_DIR"
   fi
 
-  # 5. TypeScript
   echo "Installing TypeScript..."
   npm install -g typescript
 
-  # 6. Env vars
   echo "Configuring environment variables..."
   read -s -p "NextAuth secret (min 32 characters, or press Enter to generate): " NEXTAUTH_SECRET
   echo ""
@@ -105,15 +99,12 @@ EOF
 
   echo ".env.local created"
 
-  # 7. Project deps
   echo "Installing project dependencies..."
   npm install
 
-  # 8. Build
   echo "Building the app..."
   npm run build
 
-  # 9. Start PM2
   echo "Starting Librix under PM2 on port $APP_PORT..."
   pm2 start "npm run start -- -p $APP_PORT" --name "librix"
   pm2 save
