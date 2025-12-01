@@ -51,7 +51,18 @@ export async function PUT(req: NextRequest) {
     }
 
     // Verify current password
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    // Check if password is hashed (bcrypt hashes start with $2a$, $2b$, or $2y$)
+    const isHashed = user.password.startsWith('$2');
+
+    let isPasswordValid = false;
+    if (isHashed) {
+      // Compare with bcrypt
+      isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    } else {
+      // Plain text comparison (for backwards compatibility)
+      isPasswordValid = currentPassword === user.password;
+    }
+
     if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Current password is incorrect' },
