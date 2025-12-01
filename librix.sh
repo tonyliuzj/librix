@@ -93,8 +93,12 @@ install_librix() {
     echo ""
   done
 
+  read -p "Port number (press Enter for default 3000): " APP_PORT
+  APP_PORT=${APP_PORT:-3000}
+
   cat > .env.local <<EOF
 NEXTAUTH_SECRET=$NEXTAUTH_SECRET
+PORT=$APP_PORT
 EOF
 
   echo ".env.local created"
