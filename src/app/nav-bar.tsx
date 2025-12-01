@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { Menu, Moon, Sun, ArrowLeft, Search, Folder, Settings, Library } from 'lucide-react';
+import { Menu, Moon, Sun, ArrowLeft, Search, Folder, Library } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
