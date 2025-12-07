@@ -139,10 +139,13 @@ update_librix() {
   npm run build
 
   echo "Restarting Librix with PM2..."
-  pm2 restart librix
+  APP_PORT=$(grep PORT .env.local | cut -d'=' -f2)
+  pm2 delete librix || true
+  pm2 start "npm run start -- -p $APP_PORT" --name "librix"
+  pm2 save
 
   echo "Update complete!"
-  echo "Visit: http://localhost:$(grep PORT .env.local | cut -d'=' -f2)"
+  echo "Visit: http://localhost:$APP_PORT"
 }
 
 uninstall_librix() {
